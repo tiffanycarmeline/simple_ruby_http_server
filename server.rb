@@ -9,21 +9,21 @@ class Server
   end
 
   def start_server
-    socket = TCPServer.new(port_number)
-    keep_listening(socket)
+    server = TCPServer.new(port_number)
+    keep_listening(server)
   end
 
-  def keep_listening(socket)
-    while client = socket.accept
-      client.write(Time.now)
-      client.print("Hello world") 
-      puts "Connection received from #{client.peeraddr.inspect}"
-      puts "Connection from #{client.peeraddr.inspect} terminated"
-      client.close
+  def keep_listening(server)
+    loop do
+      Thread.new(server.accept) do |client|
+        request_path = client.gets
+        route = Route.new(request_path, 'GET', client)
+        route.display_path
+        puts "Connection received from #{client.peeraddr.inspect}"
+        puts "Connection from #{client.peeraddr.inspect} terminated"
+        client.close
+      end
     end
-  end
-
-  def display_pages
   end
 end
 ser1 = Server.new(8080)
